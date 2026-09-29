@@ -1,0 +1,3 @@
+# Mantener solo la fuente LaTeX de la memoria bajo control de versiones.
+/memoria/*
+!/memoria/memoria.tex
