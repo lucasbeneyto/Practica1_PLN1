@@ -1,3 +1,9 @@
 # Mantener solo la fuente LaTeX de la memoria bajo control de versiones.
 /memoria/*
 !/memoria/memoria.tex
+
+# Pesos del modelo GPT-2: se descargan con el cuaderno (superan el límite de 100 MB de GitHub).
+gpt2_weights/*.safetensors
+gpt2_weights/*.bin
+gpt2_weights/*.pt
+gpt2_weights/*.h5
