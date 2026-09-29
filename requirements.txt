@@ -1,7 +1,8 @@
-# Dependencias Python usadas por los cuadernos del proyecto.
+﻿# Dependencias Python usadas por los cuadernos del proyecto.
 matplotlib
 numpy
 pandas
 requests
 tiktoken
 torch
+transformers
