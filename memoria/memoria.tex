@@ -1,0 +1,80 @@
+\documentclass[11pt]{article}
+
+% Plantilla basada en el formato de artículos de la ACL.
+% Para la versión final, omite la opción "review".
+\usepackage{acl}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+
+\title{Ampliación de la arquitectura de un modelo de lengua básico}
+
+\author{Carlos V.\\
+  Grado en Ingeniería en Inteligencia Artificial, Universitat d'Alacant\\
+  \texttt{caviro50@gmail.com}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Esta memoria describe la ampliación implementada sobre el modelo de lengua
+base, el protocolo experimental empleado para validarla y los resultados
+obtenidos. Sustituye este texto por un resumen de entre 100 y 150 palabras.
+\end{abstract}
+
+\section{Introducción}
+El código de partida implementa los componentes de un transformer causal,
+incluyendo la atención multi-cabeza, la normalización, la red \emph{feed-forward}
+y la generación de texto. En este trabajo se amplía dicha arquitectura con
+\textbf{[nombre de la técnica]}.
+
+\section{Trabajo relacionado}
+Describe brevemente la técnica elegida y los modelos de lengua que la emplean.
+Incluye citas a las fuentes originales, por ejemplo \citep{raschka2024}.
+
+\section{Metodología}
+\subsection{Modelo base}
+Documenta la configuración del modelo y los módulos que se modifican.
+
+\subsection{Ampliación propuesta}
+Explica la implementación, las decisiones de diseño y las diferencias respecto
+al código base. Añade pseudocódigo o ecuaciones cuando resulten útiles.
+
+\section{Evaluación experimental}
+Especifica una validación reproducible: comparación numérica con una
+implementación de referencia, medidas de memoria o velocidad, o entrenamiento
+de un modelo pequeño. Indica los datos, las semillas, el hardware y las
+métricas utilizados.
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{lcc}
+    \toprule
+    Configuración & Métrica 1 & Métrica 2 \\
+    \midrule
+    Modelo base & -- & -- \\
+    Modelo ampliado & -- & -- \\
+    \bottomrule
+  \end{tabular}
+  \caption{Resultados de la evaluación. Sustituye los guiones por los valores obtenidos.}
+  \label{tab:resultados}
+\end{table}
+
+\section{Resultados y discusión}
+Presenta e interpreta los resultados de la Tabla~\ref{tab:resultados}. Indica
+si las evidencias confirman el efecto esperado de la ampliación y comenta sus
+limitaciones.
+
+\section{Conclusiones}
+Resume la contribución, los hallazgos principales y posibles mejoras futuras.
+
+\bibliography{referencias}
+
+\end{document}
