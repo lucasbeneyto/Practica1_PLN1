@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "practica1-pln1"
+version = "1.0.0"
+description = "Ampliación de un modelo de lengua GPT: Rotary Position Embeddings (RoPE)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Práctica 1 - PLN I" }]
+dependencies = [
+    "torch>=2.0",
+    "transformers>=4.40",
+    "tiktoken>=0.5",
+    "numpy>=1.24",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+notebook = ["jupyter>=1.0", "ipykernel"]
+
+[tool.setuptools]
+packages = ["minigpt"]

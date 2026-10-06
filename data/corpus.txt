@@ -1,0 +1,57 @@
+Language models estimate the probability of a sequence of words, and that
+simple idea turns out to be enough to write poetry, answer questions, translate
+sentences, and carry on a conversation. A model does not store sentences: it
+stores statistical habits. Given everything it has read, it learns which token
+is likely to follow another, and generation is nothing more than repeated
+sampling from that distribution. The quality of a model is therefore measured
+less by the size of its memory than by the shape of the patterns it can
+reproduce, and by how gracefully it handles a sentence it has never seen.
+
+The transformer architecture changed the field because it replaced sequential
+computation with attention. Every position can look at every previous position
+in a single operation, which makes training highly parallel and lets the model
+route information across long distances. A causal mask keeps the generative
+property intact: each token may read the past but never the future. Around that
+core the standard recipe adds residual connections, layer normalization, and a
+small feed-forward network that is applied to each position independently.
+
+A practical problem appears as soon as sequences grow: the model must know
+where each token sits. Early implementations learned a vector for every
+absolute position and added it to the token embedding, a scheme that works well
+up to the length seen during training and then simply has no parameters for
+longer inputs. Rotary embeddings take a different route. Instead of adding a
+position vector, they rotate the query and key vectors by an angle proportional
+to their index, so the dot product between two positions depends only on how
+far apart they are.
+
+That relative view has consequences that are easy to demonstrate. Shift an
+entire window of text a few positions to the right and the attention scores of
+a rotary model do not change at all, while the scores of an absolute model
+change with every shift. The rotary model also carries no positional
+parameters, which removes a small amount of memory and makes the scheme
+attractive for long contexts. None of this comes for free: a model pretrained
+with absolute positions cannot be converted by simply discarding the learned
+embeddings, because the rest of the weights were optimized around them.
+
+Evaluating such choices requires more than a single number. Perplexity on held
+out text measures how surprised a model is by what it reads, but it hides the
+structure of the failure: a model can be fluent yet lose track of order, or
+remain faithful to the structure while sounding repetitive. It is therefore
+useful to combine a perplexity measurement with controlled synthetic tasks, in
+which the dependency to be learned is known exactly and the only variable is
+the length of the sequence the model has to handle at test time.
+
+Reproducibility is the quiet foundation of all of this. Fixed seeds, a versioned
+corpus, a documented configuration, and a clear separation between the reusable
+library and the experimental notebook make it possible to rerun an experiment
+months later and obtain the same table. Good scientific code is not clever
+code: it is code that makes the comparison honest, that reports the numbers it
+actually measured, and that fails loudly when an assumption stops holding.
+
+Once the pieces are in place, the interesting part begins: watching the two
+models disagree. On short sequences they are almost interchangeable, and any
+difference is lost in the noise of initialization. As the context stretches
+beyond the training length, one of them stays steady while the other begins to
+hallucinate order, and the plot of loss against length becomes the real
+argument for or against the change. That is the experiment this notebook is
+built to run, and it is worth running carefully.
