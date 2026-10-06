@@ -1,8 +1,7 @@
-﻿# Dependencias Python usadas por los cuadernos del proyecto.
-matplotlib
-numpy
-pandas
-requests
-tiktoken
-torch
-transformers
+﻿# Dependencias Python usadas por el proyecto.
+torch>=2.0
+transformers>=4.40
+tiktoken>=0.5
+numpy>=1.24
+matplotlib>=3.7
+jupyter>=1.0
