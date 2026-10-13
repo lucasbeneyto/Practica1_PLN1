@@ -60,6 +60,28 @@ model = pretrained_gpt2(positional="rope")   # carga los pesos locales
 logits = model(input_ids)
 ```
 
+## Fine-tuning RoPE (FP16)
+
+El pipeline de ejemplo usa los corpus sintéticos `data/example_train.txt` y
+`data/example_valid.txt`; solo sirven para verificar el proceso, no para mejorar
+la calidad general del modelo. El entrenamiento requiere CUDA compatible con
+FP16 y no cambia automáticamente a otra precisión. El forward usa autocast
+FP16 y GradScaler, manteniendo los parámetros maestros/estados del optimizador
+en FP32 para estabilidad numérica.
+
+```bash
+# Fine-tuning completo
+python -m minigpt.finetune --mode full
+
+# Adaptadores LoRA sobre Q/V
+python -m minigpt.finetune --mode lora --targets qv
+```
+
+Los checkpoints se guardan bajo `gpt2_weights/full/` o `gpt2_weights/lora/`,
+sin sobrescribir el GPT-2 base. Se pueden indicar otros corpus de texto con
+`--train` y `--valid` cuando haya un corpus real aprobado; el directorio
+`data/corpus.txt` existente no forma parte del ejemplo ni se modifica.
+
 ## Experimentos del cuaderno
 
 1. Coste de parámetros de cada esquema posicional.
