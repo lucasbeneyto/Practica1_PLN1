@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
+from torch.utils.checkpoint import checkpoint
 
 from minigpt.blocks import TransformerBlock
 from minigpt.config import GPTConfig
@@ -23,6 +24,7 @@ class GPTModel(nn.Module):
     def __init__(self, cfg: GPTConfig) -> None:
         super().__init__()
         self.cfg = cfg
+        self.gradient_checkpointing = False
         self.tok_emb = nn.Embedding(cfg.vocab_size, cfg.emb_dim)
         self.drop_emb = nn.Dropout(cfg.drop_rate)
 
@@ -98,6 +100,12 @@ class GPTModel(nn.Module):
                 attns.append(attn)
                 shortcut = x
                 x = block.drop_shortcut(block.ff(block.norm2(x))) + shortcut
+            elif self.gradient_checkpointing and self.training and torch.is_grad_enabled():
+                x = checkpoint(
+                    lambda hidden, layer=block: layer(hidden, position_offset=position_offset),
+                    x,
+                    use_reentrant=False,
+                )
             else:
                 x = block(x, position_offset=position_offset)
 

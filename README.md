@@ -62,25 +62,35 @@ logits = model(input_ids)
 
 ## Fine-tuning RoPE (FP16)
 
-El pipeline de ejemplo usa los corpus sintéticos `data/example_train.txt` y
-`data/example_valid.txt`; solo sirven para verificar el proceso, no para mejorar
-la calidad general del modelo. El entrenamiento requiere CUDA compatible con
-FP16 y no cambia automáticamente a otra precisión. El forward usa autocast
-FP16 y GradScaler, manteniendo los parámetros maestros/estados del optimizador
-en FP32 para estabilidad numérica.
+El pipeline usa por defecto `data/dacsa_spanish_articles_train.txt`. Tokeniza
+los artículos por lotes, añade el token de fin de texto entre artículos y
+guarda una caché compacta mapeada en memoria bajo `gpt2_weights/token_cache/`;
+no carga el corpus completo en RAM. Si no se pasa `--valid`, reserva el último
+1% de bloques del corpus para validación. Los corpus `data/example_*.txt` se
+pueden usar solo para una prueba rápida.
+
+El entrenamiento requiere CUDA compatible con FP16 y no cambia
+automáticamente a otra precisión. Usa autocast FP16 y GradScaler, manteniendo
+los parámetros maestros y estados del optimizador en FP32 para estabilidad.
+`--steps` cuenta microbatches; por defecto hay 2.000 y 125 actualizaciones por
+acumulación de gradiente. Usa `--epochs 1` para recorrer una época completa;
+en DACSA esto puede tardar mucho más que la prueba inicial.
+La parada temprana está activada por defecto: detiene si la pérdida de
+validación no mejora al menos `0.005` durante ocho evaluaciones consecutivas y
+conserva `best.pt` según la mejor pérdida observada.
 
 ```bash
-# Fine-tuning completo
-python -m minigpt.finetune --mode full
+# Fine-tuning completo; valida con el 1% reservado del propio corpus
+python -m minigpt.finetune --mode full --steps 2000
 
-# Adaptadores LoRA sobre Q/V
-python -m minigpt.finetune --mode lora --targets qv
+# LoRA sobre Q/V
+python -m minigpt.finetune --mode lora --targets qv --steps 2000
 ```
 
 Los checkpoints se guardan bajo `gpt2_weights/full/` o `gpt2_weights/lora/`,
-sin sobrescribir el GPT-2 base. Se pueden indicar otros corpus de texto con
-`--train` y `--valid` cuando haya un corpus real aprobado; el directorio
-`data/corpus.txt` existente no forma parte del ejemplo ni se modifica.
+sin sobrescribir el GPT-2 base. Se puede proporcionar un split de validación
+independiente con `--valid ruta/al/valid.txt`. El entrenamiento se puede
+reanudar con `--resume ruta/al/checkpoint-step-XXXXXX.pt` y un `--steps` mayor.
 
 ## Experimentos del cuaderno
 

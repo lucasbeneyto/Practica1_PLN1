@@ -7,6 +7,11 @@ gpt2_weights/*.safetensors
 gpt2_weights/*.bin
 gpt2_weights/*.pt
 gpt2_weights/*.h5
+gpt2_weights/token_cache/
+# Ignorar checkpoints intermedios de todas las corridas; conservar solo best.pt.
+gpt2_weights/**/*.pt
+!gpt2_weights/best.pt
+!gpt2_weights/**/best.pt
 
 # Artefactos de Python y Jupyter.
 __pycache__/

@@ -20,8 +20,12 @@ class LoRALinear(nn.Module):
         self.rank = rank
         self.alpha = alpha
         self.dropout = nn.Dropout(dropout)
-        self.lora_A = nn.Parameter(torch.empty(rank, base.in_features))
-        self.lora_B = nn.Parameter(torch.zeros(base.out_features, rank))
+        self.lora_A = nn.Parameter(torch.empty(
+            rank, base.in_features, device=base.weight.device, dtype=base.weight.dtype
+        ))
+        self.lora_B = nn.Parameter(torch.zeros(
+            base.out_features, rank, device=base.weight.device, dtype=base.weight.dtype
+        ))
         nn.init.kaiming_uniform_(self.lora_A, a=math.sqrt(5))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
