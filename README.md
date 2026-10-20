@@ -92,6 +92,27 @@ sin sobrescribir el GPT-2 base. Se puede proporcionar un split de validación
 independiente con `--valid ruta/al/valid.txt`. El entrenamiento se puede
 reanudar con `--resume ruta/al/checkpoint-step-XXXXXX.pt` y un `--steps` mayor.
 
+### Preparar OPUS-100 inglés-español
+
+El fichero OPUS-100 `en-es/train-00000-of-00001.parquet` se prepara sin
+entrenar el modelo. Instala las dependencias y convierte los pares en ejemplos
+con una instrucción de traducción explícita. El script crea particiones
+reproducibles de entrenamiento, validación y prueba; el test se reserva para la
+evaluación final.
+
+```bash
+python -m minigpt.prepare_opus100 data/opus100_en-es_train.parquet
+python -m minigpt.finetune --mode full \
+  --train data/opus100_en-es_train.txt \
+  --valid data/opus100_en-es_valid.txt
+```
+
+La preparación solo genera datos; el segundo comando inicia entrenamiento y
+debe ejecutarse por separado. La demo compara generación greedy y muestreo
+(temperatura, top-k/top-p y control de repeticiones), e informa repetición de
+trigramas. La validación usa pérdida/perplejidad; `data/opus100_en-es_test.txt`
+no debe emplearse para seleccionar checkpoints.
+
 ## Experimentos del cuaderno
 
 1. Coste de parámetros de cada esquema posicional.

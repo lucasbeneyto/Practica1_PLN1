@@ -27,3 +27,6 @@ figures/
 runs/
 
 planning/
+
+# Datos descargados y derivados de OPUS-100 (se regeneran con el script).
+data/opus100_en-es_*

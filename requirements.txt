@@ -4,4 +4,5 @@ transformers>=4.40
 tiktoken>=0.5
 numpy>=1.24
 matplotlib>=3.7
+pyarrow>=14.0
 jupyter>=1.0
