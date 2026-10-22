@@ -2,16 +2,8 @@
 /memoria/*
 !/memoria/memoria.tex
 
-# Pesos del modelo GPT-2: se descargan con el paquete (superan el límite de 100 MB de GitHub).
-gpt2_weights/*.safetensors
-gpt2_weights/*.bin
-gpt2_weights/*.pt
-gpt2_weights/*.h5
-gpt2_weights/token_cache/
-# Ignorar checkpoints intermedios de todas las corridas; conservar solo best.pt.
-gpt2_weights/**/*.pt
-!gpt2_weights/best.pt
-!gpt2_weights/**/best.pt
+# Pesos, checkpoints y configuraciones locales de los modelos.
+/gpt2_weights/
 
 # Artefactos de Python y Jupyter.
 __pycache__/
@@ -28,5 +20,5 @@ runs/
 
 planning/
 
-# Datos descargados y derivados de OPUS-100 (se regeneran con el script).
-data/opus100_en-es_*
+# Corpus, descargas y cachés de datos (se regeneran con los scripts).
+/data/
