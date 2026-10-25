@@ -2,6 +2,9 @@
 /memoria/*
 !/memoria/memoria.tex
 
+# Configuración local del editor.
+.vscode/
+
 # Pesos, checkpoints y configuraciones locales de los modelos.
 /gpt2_weights/
 

@@ -1,0 +1,114 @@
+Dispositivo: cuda
+Vocabulario compacto: 42 tokens
+Generando conjuntos sintéticos ...
+Inicialización común: 72 tensores, diferencia máxima = 0.00e+00
+
+=== Entrenando variante learned ===
+  paso   100 | train loss 1.6709 acc 34.4% | val loss 1.7319 acc 28.30%
+  paso   200 | train loss 1.4888 acc 37.5% | val loss 1.5625 acc 32.40%
+  paso   300 | train loss 1.2587 acc 50.0% | val loss 1.5068 acc 33.20%
+  paso   400 | train loss 1.1560 acc 51.6% | val loss 1.3389 acc 43.00%
+  paso   500 | train loss 0.0513 acc 96.9% | val loss 0.0415 acc 99.50%
+  paso   600 | train loss 0.0046 acc 100.0% | val loss 0.0085 acc 99.80%
+  paso   700 | train loss 0.0038 acc 100.0% | val loss 0.0051 acc 99.90%
+  paso   800 | train loss 0.0015 acc 100.0% | val loss 0.0017 acc 100.00%
+  paso   900 | train loss 0.0014 acc 100.0% | val loss 0.0054 acc 99.80%
+  paso  1000 | train loss 0.0010 acc 100.0% | val loss 0.0010 acc 100.00%
+  paso  1100 | train loss 0.0008 acc 100.0% | val loss 0.0008 acc 100.00%
+  paso  1200 | train loss 0.0007 acc 100.0% | val loss 0.0007 acc 100.00%
+  paso  1300 | train loss 0.0006 acc 100.0% | val loss 0.0006 acc 100.00%
+  paso  1400 | train loss 0.0005 acc 100.0% | val loss 0.0006 acc 100.00%
+  paso  1500 | train loss 0.0005 acc 100.0% | val loss 0.0005 acc 100.00%
+  paso  1600 | train loss 0.0004 acc 100.0% | val loss 0.0005 acc 100.00%
+  paso  1700 | train loss 0.0004 acc 100.0% | val loss 0.0004 acc 100.00%
+  paso  1800 | train loss 0.0004 acc 100.0% | val loss 0.0004 acc 100.00%
+  paso  1900 | train loss 0.0003 acc 100.0% | val loss 0.0004 acc 100.00%
+  paso  2000 | train loss 0.0003 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2100 | train loss 0.0003 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2200 | train loss 0.0003 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2300 | train loss 0.0003 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2400 | train loss 0.0003 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2500 | train loss 0.0002 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2600 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  2700 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  2800 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  2900 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3000 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3100 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3200 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3300 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3400 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3500 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3600 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3700 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3800 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3900 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  4000 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  extrapolación  6 pares ( 28 tokens): loss 0.0002 | acc 100.00%
+  extrapolación  8 pares ( 36 tokens): loss 1.7643 | acc 73.70%
+  extrapolación 12 pares ( 52 tokens): loss 3.8169 | acc 48.40%
+  extrapolación 16 pares ( 68 tokens): loss 4.3138 | acc 41.00%
+  extrapolación 20 pares ( 84 tokens): loss 4.6401 | acc 35.70%
+  extrapolación 24 pares (100 tokens): loss 5.0153 | acc 31.10%
+  resumen learned: val acc 100.00% | mejor paso 4000 | 80.7 s
+
+=== Entrenando variante rope ===
+  paso   100 | train loss 1.6486 acc 39.1% | val loss 1.7432 acc 28.70%
+  paso   200 | train loss 1.4668 acc 48.4% | val loss 1.5402 acc 31.10%
+  paso   300 | train loss 1.1668 acc 48.4% | val loss 1.5135 acc 33.50%
+  paso   400 | train loss 1.3469 acc 37.5% | val loss 1.5013 acc 32.60%
+  paso   500 | train loss 0.3963 acc 89.1% | val loss 0.4521 acc 86.00%
+  paso   600 | train loss 0.0042 acc 100.0% | val loss 0.0238 acc 99.50%
+  paso   700 | train loss 0.0023 acc 100.0% | val loss 0.0031 acc 100.00%
+  paso   800 | train loss 0.0017 acc 100.0% | val loss 0.0139 acc 99.80%
+  paso   900 | train loss 0.0012 acc 100.0% | val loss 0.0013 acc 100.00%
+  paso  1000 | train loss 0.0009 acc 100.0% | val loss 0.0010 acc 100.00%
+  paso  1100 | train loss 0.0008 acc 100.0% | val loss 0.0008 acc 100.00%
+  paso  1200 | train loss 0.0007 acc 100.0% | val loss 0.0007 acc 100.00%
+  paso  1300 | train loss 0.0006 acc 100.0% | val loss 0.0006 acc 100.00%
+  paso  1400 | train loss 0.0006 acc 100.0% | val loss 0.0006 acc 100.00%
+  paso  1500 | train loss 0.0005 acc 100.0% | val loss 0.0005 acc 100.00%
+  paso  1600 | train loss 0.0004 acc 100.0% | val loss 0.0005 acc 100.00%
+  paso  1700 | train loss 0.0004 acc 100.0% | val loss 0.0004 acc 100.00%
+  paso  1800 | train loss 0.0004 acc 100.0% | val loss 0.0004 acc 100.00%
+  paso  1900 | train loss 0.0003 acc 100.0% | val loss 0.0004 acc 100.00%
+  paso  2000 | train loss 0.0003 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2100 | train loss 0.0003 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2200 | train loss 0.0003 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2300 | train loss 0.0003 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2400 | train loss 0.0003 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2500 | train loss 0.0002 acc 100.0% | val loss 0.0003 acc 100.00%
+  paso  2600 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  2700 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  2800 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  2900 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3000 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3100 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3200 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3300 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3400 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3500 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3600 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3700 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3800 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  3900 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  paso  4000 | train loss 0.0002 acc 100.0% | val loss 0.0002 acc 100.00%
+  extrapolación  6 pares ( 28 tokens): loss 0.0002 | acc 100.00%
+  extrapolación  8 pares ( 36 tokens): loss 0.0002 | acc 100.00%
+  extrapolación 12 pares ( 52 tokens): loss 0.0734 | acc 98.40%
+  extrapolación 16 pares ( 68 tokens): loss 0.2485 | acc 94.70%
+  extrapolación 20 pares ( 84 tokens): loss 0.6173 | acc 88.40%
+  extrapolación 24 pares (100 tokens): loss 0.8877 | acc 83.70%
+  resumen rope: val acc 100.00% | mejor paso 4000 | 87.9 s
+
+Resultados guardados en /home/usuario/A4/PL/Practica1_PLN1/experimento1_asociativo/resultados_experimento1.json
+
+Tabla final de accuracy en el token de respuesta
+ pares  tokens    learned       rope
+------------------------------------
+     6      28   100.00%   100.00%
+     8      36    73.70%   100.00%
+    12      52    48.40%    98.40%
+    16      68    41.00%    94.70%
+    20      84    35.70%    88.40%
+    24     100    31.10%    83.70%

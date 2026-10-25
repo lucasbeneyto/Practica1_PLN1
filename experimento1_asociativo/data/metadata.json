@@ -1,0 +1,146 @@
+{
+  "seeds": {
+    "data": 2026,
+    "model": 42,
+    "training": 123
+  },
+  "train_pairs_range": [
+    4,
+    6
+  ],
+  "test_pair_lengths": [
+    6,
+    8,
+    12,
+    16,
+    20,
+    24
+  ],
+  "sizes": {
+    "train": 10000,
+    "val": 1000,
+    "test_per_length": 1000
+  },
+  "tokenizer": {
+    "vocab_size": 42,
+    "pad_id": 41,
+    "id_to_token": [
+      ",",
+      ":",
+      " T",
+      " S",
+      " I",
+      " A",
+      " C",
+      " M",
+      " B",
+      " P",
+      " 1",
+      " D",
+      " 2",
+      " H",
+      " W",
+      " R",
+      " F",
+      " N",
+      " G",
+      " L",
+      " E",
+      " O",
+      " J",
+      " U",
+      " K",
+      " 3",
+      " V",
+      " Y",
+      " 4",
+      " 5",
+      " 0",
+      " 6",
+      " 7",
+      " 8",
+      " 9",
+      " Z",
+      " Q",
+      " X",
+      " ->",
+      " QU",
+      "ERY",
+      "<pad>"
+    ]
+  },
+  "statistics": {
+    "train": {
+      "n_examples": 10000,
+      "min_pairs": 4,
+      "max_pairs": 6,
+      "mean_pairs": 4.9958,
+      "min_tokens": 20,
+      "max_tokens": 28,
+      "mean_tokens": 23.9832
+    },
+    "val": {
+      "n_examples": 1000,
+      "min_pairs": 4,
+      "max_pairs": 6,
+      "mean_pairs": 5.026,
+      "min_tokens": 20,
+      "max_tokens": 28,
+      "mean_tokens": 24.104
+    },
+    "test_pairs_6": {
+      "n_examples": 1000,
+      "min_pairs": 6,
+      "max_pairs": 6,
+      "mean_pairs": 6.0,
+      "min_tokens": 28,
+      "max_tokens": 28,
+      "mean_tokens": 28.0
+    },
+    "test_pairs_8": {
+      "n_examples": 1000,
+      "min_pairs": 8,
+      "max_pairs": 8,
+      "mean_pairs": 8.0,
+      "min_tokens": 36,
+      "max_tokens": 36,
+      "mean_tokens": 36.0
+    },
+    "test_pairs_12": {
+      "n_examples": 1000,
+      "min_pairs": 12,
+      "max_pairs": 12,
+      "mean_pairs": 12.0,
+      "min_tokens": 52,
+      "max_tokens": 52,
+      "mean_tokens": 52.0
+    },
+    "test_pairs_16": {
+      "n_examples": 1000,
+      "min_pairs": 16,
+      "max_pairs": 16,
+      "mean_pairs": 16.0,
+      "min_tokens": 68,
+      "max_tokens": 68,
+      "mean_tokens": 68.0
+    },
+    "test_pairs_20": {
+      "n_examples": 1000,
+      "min_pairs": 20,
+      "max_pairs": 20,
+      "mean_pairs": 20.0,
+      "min_tokens": 84,
+      "max_tokens": 84,
+      "mean_tokens": 84.0
+    },
+    "test_pairs_24": {
+      "n_examples": 1000,
+      "min_pairs": 24,
+      "max_pairs": 24,
+      "mean_pairs": 24.0,
+      "min_tokens": 100,
+      "max_tokens": 100,
+      "mean_tokens": 100.0
+    }
+  }
+}
