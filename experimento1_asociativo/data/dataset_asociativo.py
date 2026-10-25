@@ -1,4 +1,4 @@
-"""Dataset sintético de *Associative Recall* y utilidades de entrenamiento.
+"""Dataset sintético de *Associative Recall* para el Experimento 1.
 
 Este módulo implementa la tarea del Experimento 1: memorización asociativa de
 pares clave-valor y extrapolación a longitudes no vistas.  Se apoya en el
@@ -24,27 +24,14 @@ la predicción de contenido aleatorio de los pares.
 from __future__ import annotations
 
 import json
-import math
 import random
-import sys
-import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Sequence
 
 import torch
-import torch.nn.functional as F
 
-# El paquete minigpt vive en la raíz del proyecto; este módulo está en una
-# subcarpeta, por lo que se añade la raíz al path antes de importarlo.
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-import tiktoken  # noqa: E402
-
-from minigpt.config import GPTConfig  # noqa: E402
-from minigpt.model import GPTModel  # noqa: E402
+import tiktoken
 
 #: Claves posibles (26 letras mayúsculas).
 KEYS: tuple[str, ...] = tuple("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -54,9 +41,10 @@ VALUES: tuple[str, ...] = tuple("0123456789")
 #: Se usa un id compacto propio, no un token de tiktoken.
 PAD_TOKEN = "<pad>"
 
-EXPERIMENT_DIR = Path(__file__).resolve().parent
+EXPERIMENT_DIR = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = EXPERIMENT_DIR.parent
 DATA_DIR = EXPERIMENT_DIR / "data"
-WEIGHTS_ROOT = EXPERIMENT_DIR / "exp1_associative_recall"
+WEIGHTS_ROOT = EXPERIMENT_DIR / "pesos"
 
 #: Semillas fijas de todo el experimento.
 DATA_SEED = 2026
@@ -287,251 +275,6 @@ def collate_examples(
         answer_positions[row] = example.answer_position
         answer_ids[row] = example.token_ids[example.answer_position]
     return input_ids, answer_positions, answer_ids
-
-
-def answer_logits(
-    model: GPTModel,
-    input_ids: torch.Tensor,
-    answer_positions: torch.Tensor,
-) -> torch.Tensor:
-    """Logits del token de respuesta para cada secuencia del lote."""
-    logits = model(input_ids)
-    batch = torch.arange(input_ids.shape[0], device=input_ids.device)
-    # El logit en la posición ``answer_position - 1`` predice el token
-    # situado en ``answer_position``.
-    return logits[batch, answer_positions - 1]
-
-
-@torch.no_grad()
-def evaluate_recall(
-    model: GPTModel,
-    examples: Sequence[RecallExample],
-    tokenizer: AssociativeTokenizer,
-    batch_size: int = 256,
-    device: str | torch.device | None = None,
-) -> dict[str, float]:
-    """Evalúa pérdida y *accuracy* exacto en el token de respuesta."""
-    if device is None:
-        device = next(model.parameters()).device
-    was_training = model.training
-    model.eval()
-
-    total_loss = 0.0
-    total_correct = 0
-    total = 0
-    for start in range(0, len(examples), batch_size):
-        batch = examples[start : start + batch_size]
-        input_ids, positions, targets = collate_examples(
-            batch, tokenizer.pad_id, device=device
-        )
-        logits = answer_logits(model, input_ids, positions)
-        loss = F.cross_entropy(logits, targets, reduction="sum")
-        total_loss += loss.item()
-        total_correct += (logits.argmax(dim=-1) == targets).sum().item()
-        total += targets.numel()
-
-    if was_training:
-        model.train()
-    return {
-        "loss": total_loss / total,
-        "accuracy": total_correct / total,
-        "n_examples": float(total),
-    }
-
-
-@dataclass
-class RecallTrainingConfig:
-    """Hiperparámetros del bucle de entrenamiento del Experimento 1."""
-
-    max_steps: int = 6_000
-    batch_size: int = 64
-    lr: float = 1e-3
-    weight_decay: float = 0.01
-    grad_clip: float = 1.0
-    warmup_steps: int = 100
-    eval_every: int = 100
-    target_accuracy: float = 0.99
-    patience_evals: int = 4
-    seed: int = TRAINING_SEED
-
-
-@dataclass
-class RecallHistory:
-    """Curvas y metadatos de un entrenamiento."""
-
-    steps: list[int] = field(default_factory=list)
-    train_losses: list[float] = field(default_factory=list)
-    train_accuracies: list[float] = field(default_factory=list)
-    val_steps: list[int] = field(default_factory=list)
-    val_losses: list[float] = field(default_factory=list)
-    val_accuracies: list[float] = field(default_factory=list)
-    best_step: int = 0
-    best_val_loss: float = float("inf")
-    best_val_accuracy: float = 0.0
-    elapsed_seconds: float = 0.0
-    stopped_early: bool = False
-    steps_run: int = 0
-
-
-def _lr_lambda(step: int, config: RecallTrainingConfig) -> float:
-    """Calentamiento lineal + decaimiento coseno hasta el 10 % del LR."""
-    if step < config.warmup_steps:
-        return (step + 1) / max(config.warmup_steps, 1)
-    progress = (step - config.warmup_steps) / max(
-        config.max_steps - config.warmup_steps, 1
-    )
-    progress = min(max(progress, 0.0), 1.0)
-    return 0.1 + 0.9 * 0.5 * (1.0 + math.cos(math.pi * progress))
-
-
-@torch.no_grad()
-def _clone_state_dict(model: torch.nn.Module) -> dict[str, torch.Tensor]:
-    return {name: tensor.detach().cpu().clone() for name, tensor in model.state_dict().items()}
-
-
-def train_recall_model(
-    model: GPTModel,
-    train_examples: Sequence[RecallExample],
-    val_examples: Sequence[RecallExample],
-    tokenizer: AssociativeTokenizer,
-    config: RecallTrainingConfig | None = None,
-    device: str | torch.device | None = None,
-    verbose: bool = True,
-) -> tuple[RecallHistory, dict[str, torch.Tensor]]:
-    """Entrena un modelo y devuelve el historial y el mejor estado de pesos."""
-    config = config or RecallTrainingConfig()
-    if device is None:
-        device = next(model.parameters()).device
-    device = torch.device(device)
-
-    model.to(device)
-    model.train()
-    optimizer = torch.optim.AdamW(
-        model.parameters(), lr=config.lr, weight_decay=config.weight_decay
-    )
-    scheduler = torch.optim.lr_scheduler.LambdaLR(
-        optimizer, lambda step: _lr_lambda(step, config)
-    )
-    generator = torch.Generator().manual_seed(config.seed)
-
-    history = RecallHistory()
-    best_state = _clone_state_dict(model)
-    best_loss = float("inf")
-    best_accuracy = 0.0
-    best_step = 0
-    early_counter = 0
-    start_time = time.perf_counter()
-
-    for step in range(1, config.max_steps + 1):
-        indices = torch.randint(
-            len(train_examples), (config.batch_size,), generator=generator
-        ).tolist()
-        batch = [train_examples[index] for index in indices]
-        input_ids, positions, targets = collate_examples(
-            batch, tokenizer.pad_id, device=device
-        )
-
-        logits = answer_logits(model, input_ids, positions)
-        loss = F.cross_entropy(logits, targets)
-        accuracy = (logits.argmax(dim=-1) == targets).float().mean().item()
-
-        optimizer.zero_grad(set_to_none=True)
-        loss.backward()
-        if config.grad_clip is not None and config.grad_clip > 0:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_clip)
-        optimizer.step()
-        scheduler.step()
-
-        if step % config.eval_every == 0 or step == config.max_steps:
-            val_metrics = evaluate_recall(
-                model, val_examples, tokenizer, device=device
-            )
-            history.steps.append(step)
-            history.train_losses.append(loss.item())
-            history.train_accuracies.append(accuracy)
-            history.val_steps.append(step)
-            history.val_losses.append(val_metrics["loss"])
-            history.val_accuracies.append(val_metrics["accuracy"])
-
-            improved = val_metrics["accuracy"] > best_accuracy or (
-                val_metrics["accuracy"] == best_accuracy
-                and val_metrics["loss"] < best_loss
-            )
-            if improved:
-                best_accuracy = val_metrics["accuracy"]
-                best_loss = val_metrics["loss"]
-                best_step = step
-                best_state = _clone_state_dict(model)
-                early_counter = 0
-            if val_metrics["accuracy"] >= config.target_accuracy:
-                early_counter += 1
-            else:
-                early_counter = 0
-
-            if verbose:
-                print(
-                    f"  paso {step:>5d} | train loss {loss.item():.4f} "
-                    f"acc {accuracy:5.1%} | val loss {val_metrics['loss']:.4f} "
-                    f"acc {val_metrics['accuracy']:6.2%}"
-                )
-
-            if early_counter >= config.patience_evals:
-                history.stopped_early = True
-                if verbose:
-                    print(
-                        f"  parada temprana: val acc >= {config.target_accuracy:.1%} "
-                        f"durante {config.patience_evals} evaluaciones"
-                    )
-                break
-
-    history.best_step = best_step
-    history.best_val_loss = best_loss
-    history.best_val_accuracy = best_accuracy
-    history.elapsed_seconds = time.perf_counter() - start_time
-    history.steps_run = step
-
-    # Restaura el mejor estado encontrado (según validación).
-    model.load_state_dict(best_state)
-    return history, best_state
-
-
-def save_checkpoint(
-    path: str | Path,
-    model: GPTModel,
-    history: RecallHistory,
-    tokenizer: AssociativeTokenizer,
-) -> None:
-    """Guarda pesos, configuración e historial en un único ``.pt``."""
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {
-        "state_dict": model.state_dict(),
-        "config": asdict(model.cfg),
-        "history": asdict(history),
-        "tokenizer": {
-            "vocab_size": tokenizer.vocab_size,
-            "pad_id": tokenizer.pad_id,
-            "id_to_token": tokenizer.id_to_token,
-        },
-    }
-    torch.save(payload, path)
-
-
-def load_checkpoint(
-    path: str | Path,
-    device: str | torch.device | None = None,
-) -> tuple[GPTModel, RecallHistory, dict]:
-    """Carga un checkpoint guardado con :func:`save_checkpoint`."""
-    if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-    payload = torch.load(path, map_location=device, weights_only=False)
-    model = GPTModel(GPTConfig(**payload["config"]))
-    model.load_state_dict(payload["state_dict"])
-    model.to(device)
-    model.eval()
-    history_payload = payload["history"]
-    history = RecallHistory(**history_payload)
-    return model, history, payload
 
 
 def dataset_statistics(examples: Sequence[RecallExample]) -> dict[str, float]:
