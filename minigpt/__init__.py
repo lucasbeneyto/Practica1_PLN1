@@ -19,7 +19,6 @@ Uso básico::
 from minigpt.attention import MultiHeadAttention
 from minigpt.blocks import TransformerBlock
 from minigpt.config import GPTConfig, PositionalEncoding
-from minigpt.data import shifted_copy_permutation, shifted_copy_sequences, train_val_split
 from minigpt.experiments import (
     count_parameters,
     format_parameters,
@@ -73,9 +72,6 @@ __all__ = [
     "pretrained_gpt2",
     "rope_angles",
     "rotate_half",
-    "shifted_copy_permutation",
-    "shifted_copy_sequences",
     "train_language_model",
-    "train_val_split",
     "translation_invariance_error",
 ]

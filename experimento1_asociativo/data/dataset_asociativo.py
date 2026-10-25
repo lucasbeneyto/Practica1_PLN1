@@ -3,17 +3,17 @@
 Este módulo implementa la tarea del Experimento 1: memorización asociativa de
 pares clave-valor y extrapolación a longitudes no vistas.  Se apoya en el
 tokenizador BPE de GPT-2 (``tiktoken``) que ya usa en el proyecto, pero restringe
-el vocabulario a los 41 tokens que aparecen realmente en la tarea.  De este
+el vocabulario a los 42 tokens que aparecen realmente en la tarea.  De este
 modo se conserva la tokenización real de GPT-2 y se obtiene un vocabulario
 compacto que permite medir el *accuracy* exacto del token de respuesta.
 
 Formato de una secuencia::
 
-    " G: 4, T: 7, A: 2, Z: 9 QUERY A 2 ->"
+    " G: 4, T: 7, A: 2, Z: 9 QUERY A 2 <|endoftext|>"
 
 Las claves son letras mayúsculas distintas y los valores dígitos.  El valor
-de la consulta aparece **inmediatamente después** de la clave consultada; la
-flecha ``->`` actúa como terminador de la secuencia.  Esta colocación es
+de la consulta aparece **inmediatamente después** de la clave consultada; el
+token especial ``<|endoftext|>`` actúa como terminador de la secuencia.  Esta colocación es
 deliberada: permite que una cabeza de inducción copie el token que sigue a la
 aparición previa de la clave, sin necesidad de aprender un salto adicional a
 través de un separador.  En el entrenamiento solo se puntúa el token de
@@ -65,10 +65,11 @@ class AssociativeTokenizer:
     """Tokenizador GPT-2 restringido al vocabulario de la tarea.
 
     Usa el BPE de GPT-2 de ``tiktoken`` y construye un mapa de los ids
-    originales que aparecen en la tarea a índices compactos ``0..40``.  El
-    índice ``41`` se reserva para el relleno.  El vocabulario resultante
+    originales que aparecen en la tarea a índices compactos ``0..41``.  El
+    índice ``42`` se reserva para el relleno.  El vocabulario resultante
     contiene exactamente las 26 claves, los 10 dígitos, la coma, los dos
-    puntos, la flecha, las piezas ``" QU"``/``"ERY"`` y el relleno.
+    puntos, el espacio que separa el valor del terminador, el token especial
+    ``<|endoftext|>``, las piezas ``" QU"``/``"ERY"`` y el relleno.
     """
 
     def __init__(self) -> None:
@@ -89,8 +90,13 @@ class AssociativeTokenizer:
             original_ids.update(ids)
         # Signos y prefijo de la consulta tal y como los produce el BPE en
         # una secuencia completa.
-        for piece in (":", ",", " ->", " QU", "ERY"):
+        for piece in (":", ",", " ", " QU", "ERY"):
             original_ids.update(self._encoding.encode(piece))
+        # Token especial de GPT-2 que marca el final de la secuencia.  Hay
+        # que permitirlo explícitamente al codificar.
+        original_ids.update(
+            self._encoding.encode("<|endoftext|>", allowed_special={"<|endoftext|>"})
+        )
 
         self.original_ids: list[int] = sorted(original_ids)
         self._original_to_compact = {
@@ -107,12 +113,14 @@ class AssociativeTokenizer:
         self.value_token_ids = {
             value: self.encode(f" {value}")[-1] for value in VALUES
         }
-        # El token de la flecha: último token de " ->".
-        self.arrow_token_id = self.encode(" ->")[-1]
+        # Id compacto del token de fin de secuencia.
+        self.eos_token_id = self.encode("<|endoftext|>")[-1]
 
     def encode(self, text: str) -> list[int]:
         """Tokeniza ``text`` y lo traduce al vocabulario compacto."""
-        original = self._encoding.encode(text)
+        original = self._encoding.encode(
+            text, allowed_special={"<|endoftext|>"}
+        )
         try:
             return [self._original_to_compact[token] for token in original]
         except KeyError as exc:  # pragma: no cover - protección de cobertura
@@ -148,12 +156,12 @@ class RecallExample:
 
     @property
     def answer_position(self) -> int:
-        """Índice del token de respuesta (penúltimo: la flecha es el último)."""
-        return len(self.token_ids) - 2
+        """Índice del token de respuesta (antes del espacio y del EOS)."""
+        return len(self.token_ids) - 3
 
     @property
-    def arrow_position(self) -> int:
-        """Índice del token terminador ``->`` (siempre el último token)."""
+    def eos_position(self) -> int:
+        """Índice del token terminador ``<|endoftext|>`` (siempre el último)."""
         return len(self.token_ids) - 1
 
     def to_dict(self) -> dict:
@@ -191,19 +199,24 @@ def make_example(
     answer = values[keys.index(query_key)]
 
     pairs_text = ", ".join(f"{key}: {value}" for key, value in zip(keys, values))
-    # El valor sigue inmediatamente a la clave consultada; la flecha solo
+    # El valor sigue inmediatamente a la clave consultada; el token EOS solo
     # termina la secuencia (no se interpone entre la clave y el valor).
-    text = f" {pairs_text} QUERY {query_key} {answer} ->"
+    text = f" {pairs_text} QUERY {query_key} {answer} <|endoftext|>"
     token_ids = tokenizer.encode(text)
 
     expected_answer_token = tokenizer.value_token_ids[answer]
-    if token_ids[-2] != expected_answer_token:
+    if token_ids[-3] != expected_answer_token:
         raise RuntimeError(
-            "El token de respuesta no coincide con el penúltimo token de la secuencia"
+            "El token de respuesta no coincide con el token anterior al "
+            "espacio y al terminador"
         )
-    if token_ids[-1] != tokenizer.arrow_token_id:
-        raise RuntimeError("El último token de la secuencia debe ser la flecha ' ->'")
-    if len(token_ids) != 4 * n_pairs + 4:
+    if tokenizer.id_to_token[token_ids[-2]] != " ":
+        raise RuntimeError("Debe haber un espacio entre la respuesta y el EOS")
+    if token_ids[-1] != tokenizer.eos_token_id:
+        raise RuntimeError(
+            "El último token de la secuencia debe ser '<|endoftext|>'"
+        )
+    if len(token_ids) != 4 * n_pairs + 5:
         raise RuntimeError(
             f"Longitud inesperada: {len(token_ids)} tokens para {n_pairs} pares"
         )
