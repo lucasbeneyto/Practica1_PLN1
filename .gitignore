@@ -13,6 +13,11 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.tmp
+*.partial
 .venv/
 dist/
 build/
@@ -25,3 +30,21 @@ planning/
 
 # Corpus, descargas y cachés de datos (se regeneran con los scripts).
 /data/
+
+# Cachés, checkpoints y salidas del piloto de los experimentos 2 y 3.
+/experimentos_2_y_3/cache_datos_exp2/
+/experimentos_2_y_3/pesos/*
+!/experimentos_2_y_3/pesos/learned/
+!/experimentos_2_y_3/pesos/rope/
+/experimentos_2_y_3/pesos/learned/*
+/experimentos_2_y_3/pesos/rope/*
+
+# Solo publicaremos el mejor checkpoint DACSA definitivo de cada modelo.
+!/experimentos_2_y_3/pesos/learned/best_dacsa_seed42.pt
+!/experimentos_2_y_3/pesos/rope/best_dacsa_seed42.pt
+/experimentos_2_y_3/resultados_exp2/piloto/
+/experimentos_2_y_3/figuras_exp2/piloto/
+
+# Solo generaremos PNG; conservamos localmente los PDF de ejecuciones anteriores.
+/experimentos_2_y_3/figuras_exp2/**/*.pdf
+/experimentos_2_y_3/figuras_exp3/**/*.pdf
