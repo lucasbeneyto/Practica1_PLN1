@@ -1,0 +1,5 @@
+modelo,fase,checkpoint,paso_seleccionado,val_loss_muestra,val_loss_completa,segundos_validacion_completa
+Learned,opus,C:\Users\cavir.ROG-CARLOS\Desktop\PLN-Practica\Practica1_PLN1\experimentos_2_y_3\pesos\learned\best_opus_seed42.pt,10000,1.027807009872049,1.0291502773988384,12.757436400046572
+Learned,dacsa,C:\Users\cavir.ROG-CARLOS\Desktop\PLN-Practica\Practica1_PLN1\experimentos_2_y_3\pesos\learned\best_dacsa_seed42.pt,10000,1.1846425347030163,1.186351004879106,288.93227079999633
+RoPE,opus,C:\Users\cavir.ROG-CARLOS\Desktop\PLN-Practica\Practica1_PLN1\experimentos_2_y_3\pesos\rope\best_opus_seed42.pt,10000,0.8788561658002436,0.8815405924510593,13.36686029995326
+RoPE,dacsa,C:\Users\cavir.ROG-CARLOS\Desktop\PLN-Practica\Practica1_PLN1\experimentos_2_y_3\pesos\rope\best_dacsa_seed42.pt,10000,1.0841446667909622,1.0862014348661724,300.87273910001386

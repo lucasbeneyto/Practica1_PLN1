@@ -1,0 +1,10 @@
+,Learned,RoPE
+vocab_size,3374,3374
+context_length,512,512
+emb_dim,256,256
+n_heads,4,4
+n_layers,4,4
+drop_rate,0.0,0.0
+qkv_bias,True,True
+positional,learned,rope
+rope_theta,10000.0,10000.0

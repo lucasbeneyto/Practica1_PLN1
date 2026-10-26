@@ -1,0 +1,7 @@
+,valor
+dispositivo,cuda
+precision,torch.float16
+lote,1
+calentamiento,5
+repeticiones,5
+iteraciones,10

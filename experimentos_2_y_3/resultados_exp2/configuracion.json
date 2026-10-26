@@ -1,0 +1,30 @@
+{
+  "modo": "definitivo",
+  "configuracion": {
+    "contexto": 512,
+    "dimension": 256,
+    "capas": 4,
+    "cabezas": 4,
+    "dropout": 0.0,
+    "microlote": 16,
+    "acumulacion": 2,
+    "lr": 0.0003,
+    "weight_decay": 0.01,
+    "max_norm_grad": 1.0,
+    "semilla": 42,
+    "pasos_piloto": {
+      "opus": 60,
+      "dacsa": 60
+    },
+    "pasos_definitivos": {
+      "opus": 10000,
+      "dacsa": 10000
+    },
+    "evaluar_cada": 500,
+    "bloques_validacion": 2048
+  },
+  "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+  "pytorch": "2.14.1+cu130",
+  "precision": "AMP FP16, parametros FP32",
+  "huella_vocabulario": "e61a0d291ceeaa874ee705057d3f30fc63a946650ccb668027e15b0b349b655e"
+}
