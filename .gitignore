@@ -1,6 +1,8 @@
-# Mantener solo la fuente LaTeX de la memoria bajo control de versiones.
+# Mantener la fuente LaTeX y los estilos oficiales ACL, no los artefactos de compilación.
 /memoria/*
 !/memoria/memoria.tex
+!/memoria/acl.sty
+!/memoria/acl_natbib.bst
 
 # Configuración local del editor.
 .vscode/

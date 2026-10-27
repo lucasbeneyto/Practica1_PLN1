@@ -1,11 +1,11 @@
-\documentclass[10pt, twocolumn, a4paper]{article}
+\documentclass[11pt]{article}
 
-\usepackage[a4paper, left=1.7cm, right=1.7cm, top=2.0cm, bottom=2.0cm]{geometry}
+% Plantilla oficial ACL, sin modificar: https://github.com/acl-org/acl-style-files
+% Versión final: autores visibles, sin números de línea ni de página.
+\usepackage[final]{acl}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[spanish,es-noshorthands]{babel}
-\usepackage{enumitem}
-\setlist[itemize]{noitemsep, topsep=1pt, label=-}
+\usepackage[spanish,es-noshorthands,es-tabla,es-noindentfirst,es-nosectiondot]{babel}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
@@ -16,44 +16,23 @@
 \usepackage{microtype}
 \usepackage{times}
 \usepackage{inconsolata}
-\usepackage{hyperref}
 \usepackage{flafter}
-\usepackage{pbalance}
-\hypersetup{hidelinks}
-
-\setlength{\columnsep}{0.6cm}
-\setlength{\parskip}{0pt}
-\setlength{\parindent}{1em}
-\clubpenalty=10000
-\widowpenalty=10000
-% Permitir flotantes cerca de su apartado sin forzar su posición ni estirar columnas.
-\raggedbottom
-\renewcommand{\topfraction}{0.9}
-\renewcommand{\bottomfraction}{0.8}
-\renewcommand{\textfraction}{0.1}
-\renewcommand{\dbltopfraction}{0.9}
-\setcounter{topnumber}{3}
-\setcounter{bottomnumber}{2}
-\setcounter{totalnumber}{4}
 
 \definecolor{ropeblue}{RGB}{31, 119, 180}
 \definecolor{learnedred}{RGB}{209, 73, 91}
 \definecolor{graybg}{RGB}{242, 242, 242}
 
-\title{\textbf{Ampliación de la arquitectura de un modelo de lengua básico:\\Rotary Position Embeddings (RoPE)}}
+\title{Ampliación de la arquitectura de un modelo de lengua básico: Rotary Position Embeddings (RoPE)}
 \author{Nombres autores\\
   Grado en Ingeniería en Inteligencia Artificial, Universitat d'Alacant\\
   \texttt{ejemplo@gmail.com}}
 \date{}
 
 \begin{document}
-\twocolumn[
 \maketitle
 \begin{abstract}
 Esta memoria documenta la ampliación de un modelo de lenguaje autorregresivo causal (tipo GPT-2) mediante la sustitución de sus \textit{embeddings} posicionales absolutos por \textit{Rotary Position Embeddings} (RoPE). Para verificar su eficacia, se diseñó una batería empírica centrada en la memoria asociativa (\textit{Associative Recall}), la convergencia y la huella computacional. Los resultados evidencian que RoPE permite una extrapolación de longitud robusta en contextos hasta 3.5 veces más largos que los de entrenamiento (alcanzando un 82{,}30\% de exactitud frente al colapso del 30{,}10\% en el esquema base), al tiempo que garantiza invariancia a la traslación espacial con coste nulo en parámetros posicionales.
 \end{abstract}
-\vspace{1em}
-]
 
 \section{Introducción}
 La arquitectura Transformer causal clásica incorpora la noción de orden secuencial sumando vectores de posición absolutos entrenables a las representaciones léxicas en la capa de entrada. Si bien este enfoque es simple, carece de un sesgo inductivo sobre las distancias relativas e impide al modelo generalizar sobre secuencias más extensas que la ventana fija optimizada durante el entrenamiento.
@@ -66,14 +45,25 @@ Para resolver esta limitación, en este trabajo se integra \textbf{Rotary Positi
 El repositorio \texttt{minigpt} se ha refactorizado para desacoplar el motor del modelo de los scripts experimentales. La clase \texttt{GPTConfig} permite alternar entre \texttt{learned} y \texttt{rope}. La lógica trigonométrica central reside en \texttt{rope.py}, mientras que \texttt{attention.py} aplica las rotaciones mediante \texttt{apply\_rotary} y una caché dinámica (\texttt{RoPECache}). Los experimentos y datos residen en sus propios módulos aislados.
 
 \subsection{Implementación de RoPE}
-Frente al esquema aditivo clásico ($x_i = \operatorname{tok\_emb}(t_i) + \operatorname{pos\_emb}(i)$), RoPE rota pares ortogonales de componentes mediante frecuencias angulares $\theta_i = 10000^{-2i/d}$:
+Frente al esquema aditivo clásico,
+\[
+x_i = \operatorname{tok\_emb}(t_i) + \operatorname{pos\_emb}(i),
+\]
+RoPE rota pares ortogonales de componentes mediante frecuencias angulares $\theta_i = 10000^{-2i/d}$:
 \begin{equation}
 \begin{gathered}
 q_m = R(\Theta_m)q,\qquad k_n = R(\Theta_n)k,\\
 q_m^\top k_n = q^\top R(\Theta_{n-m})k.
 \end{gathered}
 \end{equation}
-La operación $R(\Theta)x = x \odot \cos\Theta + \operatorname{rotate\_half}(x) \odot \sin\Theta$ traslada el posicionamiento al espacio relativo sin introducir parámetros aprendibles adicionales.
+La operación
+\[
+\begin{aligned}
+R(\Theta)x &= x \odot \cos\Theta\\
+ &\quad + \operatorname{rotate\_half}(x) \odot \sin\Theta
+\end{aligned}
+\]
+traslada el posicionamiento al espacio relativo sin introducir parámetros aprendibles adicionales.
 
 \section{Diseño Experimental}
 Dada la restricción de recursos para preentrenar LLMs masivos, se implementó una batería de experimentos acotada, reproducible y diseñada para auditar empíricamente las propiedades formales de RoPE.
@@ -104,7 +94,7 @@ Usaremos los checkpoints definitivos Learned y RoPE del experimento 2 para compa
 
 \textbf{Comportamiento en Extrapolación (H2 y H3):} Como refleja la Tabla~\ref{tab:extrap_data} y la Figura~\ref{fig:accuracy_extrapolacion}, al evaluar longitudes no vistas surge una divergencia crítica:
 
-\begin{table}[tbp]
+\begin{table}[!htb]
   \centering
   \small
   \setlength{\tabcolsep}{3pt}
@@ -147,14 +137,14 @@ El modelo \texttt{learned} sufre un colapso monótono inmediato (\textbf{H2}): c
 \subsection{Análisis del Experimento 3: Eficiencia Computacional}
 La Figura~\ref{fig:velocidad_exp3} muestra el rendimiento por longitud y la Tabla~\ref{tab:coste_exp3} recoge los parámetros y las mediciones con 512 tokens.
 
-\begin{figure}[tbp]
+\begin{figure}[!htb]
   \centering
   \includegraphics[width=\linewidth]{../experimentos_2_y_3/figuras_exp3/velocidad.png}
   \caption{Velocidad del forward completo en FP16 y lote 1; media y desviación estándar de 5 repeticiones.}
   \label{fig:velocidad_exp3}
 \end{figure}
 
-\begin{table}[tbp]
+\begin{table}[!htb]
   \centering
   \small
   \setlength{\tabcolsep}{3pt}
