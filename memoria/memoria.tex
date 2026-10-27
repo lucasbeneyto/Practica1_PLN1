@@ -82,7 +82,35 @@ Dada la restricción de recursos para preentrenar LLMs masivos, se implementó u
 \end{itemize}
 
 \subsection{Exp. 2: Convergencia desde Cero (Curvas de Loss)}
-\textit{[Espacio reservado: evaluación comparativa del ritmo de convergencia de la pérdida entre RoPE y Learned bajo semillas idénticas en corpus reducido.]}
+\textbf{Objetivo y Modelos:} Se comparó la convergencia de \texttt{learned} y \texttt{rope} entrenando desde cero dos Transformer causales de 4 capas, 4 cabezas, dimensión 256 y contexto de 512 tokens. Ambos compartieron pesos iniciales comunes, semilla ($42$), optimizador y orden de lotes, diferenciándose únicamente en la codificación posicional.
+
+\textbf{Dataset y Protocolo:} Se entrenó en dos fases consecutivas: OPUS100 (inglés-español) y DACSA (artículos en español), utilizando tokenización por caracteres y un vocabulario común de $3\,374$ tokens. Se reservó aproximadamente un $5\%$ de DACSA para validación. Cada fase comprendió $10\,000$ actualizaciones con AdamW ($\eta=3\times10^{-4}$, \textit{weight decay} de $0{,}01$) y lote efectivo de 32 secuencias. DACSA continuó desde los pesos y el optimizador de OPUS, sin reinicialización.
+
+
+\textbf{Evaluación:} Se registró la entropía cruzada y se evaluó cada 500 pasos sobre $2\,048$ secuencias fijas por corpus, realizando finalmente una validación completa de los checkpoints seleccionados.
+
+\textbf{Evolución de la Pérdida:} La Figura~\ref{fig:convergencia_exp2} muestra que ambos modelos convergieron progresivamente, aunque RoPE redujo la pérdida más rápidamente en OPUS y mantuvo valores inferiores durante ambas fases. El aumento al comenzar DACSA se debe al cambio de corpus de validación.
+
+\textbf{Resultados Finales:} La Tabla~\ref{tab:convergencia_exp2} muestra que RoPE obtuvo menores pérdidas de validación completa, con reducciones relativas del $14{,}34\%$ en OPUS y del $8{,}44\%$ en DACSA respecto a Learned.
+
+
+\begin{table}[t]
+    \centering
+    \small
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{lrrr}
+        \toprule
+        Corpus & Learned & RoPE & Mejora (\%) \\
+        \midrule
+        OPUS  & $1{,}0292$ & $\mathbf{0{,}8815}$ & $14{,}34$ \\
+        DACSA & $1{,}1864$ & $\mathbf{1{,}0862}$ & $8{,}44$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Entropía cruzada en validación completa (nats/token) tras $10\,000$ actualizaciones por fase.}
+    \label{tab:convergencia_exp2}
+\end{table}
+
+\textbf{Discusión:} RoPE mostró una convergencia inicial más rápida en OPUS y menor pérdida final en ambos corpus. Sin embargo, DACSA parte del entrenamiento previo y no constituye una segunda convergencia desde cero. Al utilizar una única semilla, serían necesarias más ejecuciones para verificar la estabilidad de los resultados.
 
 \subsection{Exp. 3: Impacto computacional}
 Usaremos los checkpoints definitivos Learned y RoPE del experimento 2 para comparar parámetros, velocidad y memoria GPU. Mediremos el forward completo con logits (no generación token a token) en RTX 5070 Laptop, FP16, lote 1 y longitudes de 64, 128, 256 y 512 tokens. En evaluación sin gradientes, realizaremos 5 calentamientos y 5 repeticiones de 10 forwards, sincronizando CUDA y excluyendo carga y transferencias. Registraremos el pico asignado por PyTorch. Comprobaremos además en FP32 la propiedad de posición relativa con Q/K fijos y separación constante.
@@ -131,8 +159,23 @@ El modelo \texttt{learned} sufre un colapso monótono inmediato (\textbf{H2}): c
     \item \textit{Invariancia por traslación:} Al aplicar un desplazamiento constante de $\Delta=+10$ posiciones a secuencias idénticas, el error absoluto máximo en los \textit{logits} del modelo estático fue severo ($8{,}946$), mientras que en RoPE se redujo a $8{,}583 \times 10^{-6}$ (del orden de la precisión flotante de 32 bits). Esto confirma de manera concluyente la hipótesis \textbf{H4}.
 \end{enumerate}
 
+
 \subsection{Análisis del Experimento 2: Curvas de Convergencia}
-\textit{[Espacio reservado para las figuras de loss y discusión de velocidad de optimización inicial.]}
+
+\textbf{Evolución de la Pérdida:} La Figura~\ref{fig:convergencia_exp2} muestra que ambos modelos redujeron progresivamente su pérdida durante las dos fases. En OPUS, RoPE presentó un descenso inicial más pronunciado y mantuvo valores inferiores a Learned durante prácticamente todo el entrenamiento. Tras el cambio a DACSA, ambos experimentaron un aumento de pérdida debido al nuevo conjunto de validación, pero RoPE conservó su ventaja durante la segunda fase.
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{Practica1_PLN1/experimentos_2_y_3/figuras_exp2/convergencia_fases.png}
+    \caption{Pérdida de validación de Learned y RoPE. La línea vertical indica el cambio de OPUS100 a DACSA tras $10\,000$ actualizaciones.}
+    \label{fig:convergencia_exp2}
+\end{figure}
+
+
+\textbf{Resultados Finales:} La Tabla~\ref{tab:convergencia_exp2} recoge la entropía cruzada sobre la validación completa. RoPE obtuvo una pérdida de $0{,}8815$ frente a $1{,}0292$ de Learned en OPUS, lo que supone una reducción relativa del $14{,}34\%$. En DACSA, alcanzó $1{,}0862$ frente a $1{,}1864$, manteniendo una mejora del $8{,}44\%$.
+
+\textbf{Discusión:} Los resultados indican que RoPE consiguió una reducción más rápida de la pérdida inicial en OPUS y una menor pérdida final en ambos corpus. Sin embargo, el comportamiento en DACSA está condicionado por el entrenamiento previo, por lo que no representa una segunda convergencia desde cero. Aunque las condiciones fueron equivalentes para ambas variantes, la comparación se realizó con una única semilla, siendo necesarias ejecuciones adicionales para comprobar la estabilidad de los resultados.
 
 \subsection{Análisis del Experimento 3: Eficiencia Computacional}
 La Figura~\ref{fig:velocidad_exp3} muestra el rendimiento por longitud y la Tabla~\ref{tab:coste_exp3} recoge los parámetros y las mediciones con 512 tokens.
