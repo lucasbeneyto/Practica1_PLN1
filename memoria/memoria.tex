@@ -1,11 +1,11 @@
-\documentclass[11pt, a4paper]{article}
+\documentclass[10pt, twocolumn, a4paper]{article}
 
-\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage[a4paper, left=1.7cm, right=1.7cm, top=2.0cm, bottom=2.0cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[spanish,es-noshorthands]{babel}
 \usepackage{enumitem}
-\setlist[itemize]{noitemsep, topsep=2pt, label=-}
+\setlist[itemize]{noitemsep, topsep=1pt, label=-}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
@@ -16,6 +16,11 @@
 \usepackage{times}
 \usepackage{inconsolata}
 \usepackage{hyperref}
+\usepackage{dblfloatfix}
+
+\setlength{\columnsep}{0.6cm}
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{1em}
 
 \definecolor{ropeblue}{RGB}{31, 119, 180}
 \definecolor{learnedred}{RGB}{209, 73, 91}
@@ -28,11 +33,13 @@
 \date{}
 
 \begin{document}
+\twocolumn[
 \maketitle
-
 \begin{abstract}
 Esta memoria documenta la ampliación de un modelo de lenguaje autorregresivo causal (tipo GPT-2) mediante la sustitución de sus \textit{embeddings} posicionales absolutos por \textit{Rotary Position Embeddings} (RoPE). Para verificar su eficacia, se diseñó una batería empírica centrada en la memoria asociativa (\textit{Associative Recall}), la convergencia y la huella computacional. Los resultados evidencian que RoPE permite una extrapolación de longitud robusta en contextos hasta 3.5 veces más largos que los de entrenamiento (alcanzando un 82{,}30\% de exactitud frente al colapso del 30{,}10\% en el esquema base), al tiempo que garantiza invariancia a la traslación espacial con coste nulo en parámetros posicionales.
 \end{abstract}
+\vspace{1em}
+]
 
 \section{Introducción}
 La arquitectura Transformer causal clásica incorpora la noción de orden secuencial sumando vectores de posición absolutos entrenables a las representaciones léxicas en la capa de entrada. Si bien este enfoque es simple, carece de un sesgo inductivo sobre las distancias relativas e impide al modelo generalizar sobre secuencias más extensas que la ventana fija optimizada durante el entrenamiento.
@@ -77,9 +84,9 @@ Dada la restricción de recursos para preentrenar LLMs masivos, se implementó u
 
 La Tabla~\ref{tab:resumen_global} resume los hallazgos globales de la comparativa, completando las mediciones de extrapolación correspondientes al primer experimento.
 
-\begin{table}[h!]
+\begin{table*}[t]
   \centering
-  \small
+  \footnotesize
   \begin{tabular}{lcccc}
     \toprule
     \textbf{Configuración} & \textbf{Acc. In-Dist (6p)} & \textbf{Acc. Extrap. (24p)} & \textbf{Velocidad (tok/s)} & \textbf{VRAM (MB)} \\
@@ -90,7 +97,7 @@ La Tabla~\ref{tab:resumen_global} resume los hallazgos globales de la comparativ
   \end{tabular}
   \caption{Métricas comparativas entre embeddings absolutos y RoPE.}
   \label{tab:resumen_global}
-\end{table}
+\end{table*}
 
 \subsection{Análisis del Experimento 1 (Extrapolación)}
 \textbf{Convergencia In-Distribution (H1):} Ambos esquemas aprendieron la tarea asociativa a la perfección, alcanzando un $\mathbf{100{,}00\%}$ de exactitud en validación al paso $4\,000$, con pérdidas insignificantes ($0{,}000165$ para \texttt{learned} y $0{,}000152$ para \texttt{rope}). Esto confirma la hipótesis \textbf{H1} y valida que las cabezas de inducción operan idénticamente dentro del rango visto.
