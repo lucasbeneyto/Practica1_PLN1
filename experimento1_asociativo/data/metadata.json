@@ -22,11 +22,12 @@
     "test_per_length": 1000
   },
   "tokenizer": {
-    "vocab_size": 42,
-    "pad_id": 41,
+    "vocab_size": 43,
+    "pad_id": 42,
     "id_to_token": [
       ",",
       ":",
+      " ",
       " T",
       " S",
       " I",
@@ -63,9 +64,9 @@
       " Z",
       " Q",
       " X",
-      " ->",
       " QU",
       "ERY",
+      "<|endoftext|>",
       "<pad>"
     ]
   },
@@ -75,72 +76,72 @@
       "min_pairs": 4,
       "max_pairs": 6,
       "mean_pairs": 4.9958,
-      "min_tokens": 20,
-      "max_tokens": 28,
-      "mean_tokens": 23.9832
+      "min_tokens": 21,
+      "max_tokens": 29,
+      "mean_tokens": 24.9832
     },
     "val": {
       "n_examples": 1000,
       "min_pairs": 4,
       "max_pairs": 6,
       "mean_pairs": 5.026,
-      "min_tokens": 20,
-      "max_tokens": 28,
-      "mean_tokens": 24.104
+      "min_tokens": 21,
+      "max_tokens": 29,
+      "mean_tokens": 25.104
     },
     "test_pairs_6": {
       "n_examples": 1000,
       "min_pairs": 6,
       "max_pairs": 6,
       "mean_pairs": 6.0,
-      "min_tokens": 28,
-      "max_tokens": 28,
-      "mean_tokens": 28.0
+      "min_tokens": 29,
+      "max_tokens": 29,
+      "mean_tokens": 29.0
     },
     "test_pairs_8": {
       "n_examples": 1000,
       "min_pairs": 8,
       "max_pairs": 8,
       "mean_pairs": 8.0,
-      "min_tokens": 36,
-      "max_tokens": 36,
-      "mean_tokens": 36.0
+      "min_tokens": 37,
+      "max_tokens": 37,
+      "mean_tokens": 37.0
     },
     "test_pairs_12": {
       "n_examples": 1000,
       "min_pairs": 12,
       "max_pairs": 12,
       "mean_pairs": 12.0,
-      "min_tokens": 52,
-      "max_tokens": 52,
-      "mean_tokens": 52.0
+      "min_tokens": 53,
+      "max_tokens": 53,
+      "mean_tokens": 53.0
     },
     "test_pairs_16": {
       "n_examples": 1000,
       "min_pairs": 16,
       "max_pairs": 16,
       "mean_pairs": 16.0,
-      "min_tokens": 68,
-      "max_tokens": 68,
-      "mean_tokens": 68.0
+      "min_tokens": 69,
+      "max_tokens": 69,
+      "mean_tokens": 69.0
     },
     "test_pairs_20": {
       "n_examples": 1000,
       "min_pairs": 20,
       "max_pairs": 20,
       "mean_pairs": 20.0,
-      "min_tokens": 84,
-      "max_tokens": 84,
-      "mean_tokens": 84.0
+      "min_tokens": 85,
+      "max_tokens": 85,
+      "mean_tokens": 85.0
     },
     "test_pairs_24": {
       "n_examples": 1000,
       "min_pairs": 24,
       "max_pairs": 24,
       "mean_pairs": 24.0,
-      "min_tokens": 100,
-      "max_tokens": 100,
-      "mean_tokens": 100.0
+      "min_tokens": 101,
+      "max_tokens": 101,
+      "mean_tokens": 101.0
     }
   }
 }

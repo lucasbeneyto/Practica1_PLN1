@@ -478,7 +478,7 @@ def run() -> dict:
             length_metrics[str(n_pairs)] = metrics
             print(
                 f"  extrapolación {n_pairs:2d} pares "
-                f"({4 * n_pairs + 4:3d} tokens): "
+                f"({4 * n_pairs + 5:3d} tokens): "
                 f"loss {metrics['loss']:.4f} | acc {metrics['accuracy']:.2%}"
             )
 
@@ -525,7 +525,7 @@ def run() -> dict:
     print(header)
     print("-" * len(header))
     for n_pairs in data.TEST_PAIR_LENGTHS:
-        row = f"{n_pairs:>6} {4 * n_pairs + 4:>7}"
+        row = f"{n_pairs:>6} {4 * n_pairs + 5:>7}"
         for positional in ("learned", "rope"):
             accuracy = evaluations[positional]["by_length"][str(n_pairs)]["accuracy"]
             row += f" {accuracy:>9.2%}"
