@@ -89,28 +89,6 @@ Dada la restricción de recursos para preentrenar LLMs masivos, se implementó u
 
 \textbf{Evaluación:} Se registró la entropía cruzada y se evaluó cada 500 pasos sobre $2\,048$ secuencias fijas por corpus, realizando finalmente una validación completa de los checkpoints seleccionados.
 
-\textbf{Evolución de la Pérdida:} La Figura~\ref{fig:convergencia_exp2} muestra que ambos modelos convergieron progresivamente, aunque RoPE redujo la pérdida más rápidamente en OPUS y mantuvo valores inferiores durante ambas fases. El aumento al comenzar DACSA se debe al cambio de corpus de validación.
-
-\textbf{Resultados Finales:} La Tabla~\ref{tab:convergencia_exp2} muestra que RoPE obtuvo menores pérdidas de validación completa, con reducciones relativas del $14{,}34\%$ en OPUS y del $8{,}44\%$ en DACSA respecto a Learned.
-
-
-\begin{table}[t]
-    \centering
-    \small
-    \setlength{\tabcolsep}{3pt}
-    \begin{tabular}{lrrr}
-        \toprule
-        Corpus & Learned & RoPE & Mejora (\%) \\
-        \midrule
-        OPUS  & $1{,}0292$ & $\mathbf{0{,}8815}$ & $14{,}34$ \\
-        DACSA & $1{,}1864$ & $\mathbf{1{,}0862}$ & $8{,}44$ \\
-        \bottomrule
-    \end{tabular}
-    \caption{Entropía cruzada en validación completa (nats/token) tras $10\,000$ actualizaciones por fase.}
-    \label{tab:convergencia_exp2}
-\end{table}
-
-\textbf{Discusión:} RoPE mostró una convergencia inicial más rápida en OPUS y menor pérdida final en ambos corpus. Sin embargo, DACSA parte del entrenamiento previo y no constituye una segunda convergencia desde cero. Al utilizar una única semilla, serían necesarias más ejecuciones para verificar la estabilidad de los resultados.
 
 \subsection{Exp. 3: Impacto computacional}
 Usaremos los checkpoints definitivos Learned y RoPE del experimento 2 para comparar parámetros, velocidad y memoria GPU. Mediremos el forward completo con logits (no generación token a token) en RTX 5070 Laptop, FP16, lote 1 y longitudes de 64, 128, 256 y 512 tokens. En evaluación sin gradientes, realizaremos 5 calentamientos y 5 repeticiones de 10 forwards, sincronizando CUDA y excluyendo carga y transferencias. Registraremos el pico asignado por PyTorch. Comprobaremos además en FP32 la propiedad de posición relativa con Q/K fijos y separación constante.
@@ -167,13 +145,28 @@ El modelo \texttt{learned} sufre un colapso monótono inmediato (\textbf{H2}): c
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=\linewidth]{Practica1_PLN1/experimentos_2_y_3/figuras_exp2/convergencia_fases.png}
+    \includegraphics[width=\linewidth]{../experimentos_2_y_3/figuras_exp2/convergencia_fases.png}
     \caption{Pérdida de validación de Learned y RoPE. La línea vertical indica el cambio de OPUS100 a DACSA tras $10\,000$ actualizaciones.}
     \label{fig:convergencia_exp2}
 \end{figure}
 
-
 \textbf{Resultados Finales:} La Tabla~\ref{tab:convergencia_exp2} recoge la entropía cruzada sobre la validación completa. RoPE obtuvo una pérdida de $0{,}8815$ frente a $1{,}0292$ de Learned en OPUS, lo que supone una reducción relativa del $14{,}34\%$. En DACSA, alcanzó $1{,}0862$ frente a $1{,}1864$, manteniendo una mejora del $8{,}44\%$.
+
+\begin{table}[t]
+    \centering
+    \small
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{lrrr}
+        \toprule
+        Corpus & Learned & RoPE & Mejora (\%) \\
+        \midrule
+        OPUS  & $1{,}0292$ & $\mathbf{0{,}8815}$ & $14{,}34$ \\
+        DACSA & $1{,}1864$ & $\mathbf{1{,}0862}$ & $8{,}44$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Entropía cruzada en validación completa (nats/token) tras $10\,000$ actualizaciones por fase.}
+    \label{tab:convergencia_exp2}
+\end{table}
 
 \textbf{Discusión:} Los resultados indican que RoPE consiguió una reducción más rápida de la pérdida inicial en OPUS y una menor pérdida final en ambos corpus. Sin embargo, el comportamiento en DACSA está condicionado por el entrenamiento previo, por lo que no representa una segunda convergencia desde cero. Aunque las condiciones fueron equivalentes para ambas variantes, la comparación se realizó con una única semilla, siendo necesarias ejecuciones adicionales para comprobar la estabilidad de los resultados.
 
@@ -211,6 +204,7 @@ RoPE elimina $131\,072$ parámetros posicionales, pero obtiene menor rendimiento
 La comprobación analítica en FP32 obtuvo un error máximo de $1{,}21\times10^{-6}$, compatible con la propiedad de posición relativa de RoPE para Q/K fijos.
 
 \section{Conclusiones}
-La ampliación implementada valida de forma concluyente que Rotary Position Embeddings supera de raíz las limitaciones de extrapolación de los esquemas posicionales absolutos. Al ligar el cómputo atencional a la distancia relativa de forma analítica, RoPE generaliza de manera consistente a longitudes varias veces superiores al horizonte de entrenamiento, manteniendo una invariancia traslacional estricta y suprimiendo miles de parámetros redundantes sin comprometer la convergencia base.
+La implementación de RoPE permitió comprobar sus ventajas frente a los embeddings posicionales aprendidos en los escenarios evaluados. En memoria asociativa, mantuvo un $82{,}30\%$ de exactitud en secuencias aproximadamente $3{,}5$ veces más largas que las de entrenamiento, frente al $30{,}10\%$ del modelo base. Además, obtuvo menores pérdidas de validación en OPUS y DACSA, con reducciones relativas del $14{,}34\%$ y $8{,}44\%$, respectivamente.
 
+En cuanto al coste computacional, RoPE eliminó $131\,072$ parámetros posicionales, aunque presentó menor velocidad de procesamiento y un consumo de memoria similar en nuestra implementación. En conjunto, los resultados respaldan las ventajas de RoPE en extrapolación y convergencia, sin que ello implique una mejora universal del rendimiento computacional.
 \end{document}
