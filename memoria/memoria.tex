@@ -50,13 +50,29 @@ Esta memoria documenta la ampliación de un modelo de lenguaje autorregresivo ca
 \section{Introducción}
 La arquitectura Transformer causal clásica incorpora la noción de orden secuencial sumando vectores de posición absolutos entrenables a las representaciones léxicas en la capa de entrada. Si bien este enfoque es simple, carece de un sesgo inductivo sobre las distancias relativas e impide al modelo generalizar sobre secuencias más extensas que la ventana fija optimizada durante el entrenamiento.
 
-Para resolver esta limitación, en este trabajo se integra \textbf{Rotary Position Embeddings (RoPE)}. RoPE prescinde de matrices posicionales estáticas y codifica la posición multiplicando las proyecciones de consultas ($Q$) y claves ($K$) por matrices de rotación ortogonales en cada cabeza de atención. La propiedad geométrica fundamental de esta transformación asegura que el producto escalar $Q^\top K$ pase a depender estrictamente del desplazamiento relativo entre pares de \textit{tokens}, dotando al sistema de una invariancia natural a la traslación.
+Para resolver esta limitación, en este trabajo se integra \textbf{Rotary Position Embeddings (RoPE)}. 
+RoPE prescinde de matrices posicionales estáticas y codifica la posición multiplicando las proyecciones de 
+consultas ($Q$) y claves ($K$) por matrices de rotación ortogonales en cada cabeza de atención. 
+La propiedad geométrica fundamental de esta transformación asegura que el producto escalar $Q^\top K$ pase a 
+depender estrictamente del desplazamiento relativo entre pares de \textit{tokens}, dotando al sistema de una invariancia 
+natural a la traslación. Como referencia de las arquitecturas y ampliaciones
+utilizadas en modelos recientes, se consultó la galería
+de \citet{raschkaGallery}.
 
 \section{Arquitectura y Ampliación}
 
 \subsection{Arquitectura Base}
-El sistema parte de la arquitectura decodificadora autorregresiva de GPT-2 implementada a partir de los capítulos 2 a 6 de la obra de Sebastian Raschka (2024; \textit{Build a Large Language Model (from scratch)}, Manning Publications). El diseño base articula la tokenización BPE, bloques de transformación causales con normalización previa (\textit{Pre-LayerNorm}), conexiones residuales y atención multicabezal enmascarada, empleando originalmente una matriz de incrustaciones posicionales absolutas aprendidas en la capa de entrada. 
+El sistema parte de la arquitectura decodificadora
+autorregresiva de GPT-2, implementada a partir de los
+capítulos 2 a 6 de \citet{raschka2024}.
+ El diseño base articula la tokenización BPE, bloques de transformación causales con normalización 
+ previa (\textit{Pre-LayerNorm}), conexiones residuales y atención multicabezal enmascarada, 
+ empleando originalmente una matriz de incrustaciones posicionales absolutas aprendidas en la
+  capa de entrada. 
+
 \subsection{Implementación de RoPE}
+La ampliación seleccionada, Rotary Position Embeddings
+(RoPE), fue propuesta por \citet{su2021roformer}.
 Frente al esquema aditivo clásico,
 \[
 x_i = \operatorname{tok\_emb}(t_i) + \operatorname{pos\_emb}(i),
@@ -96,14 +112,28 @@ Dada la restricción de recursos para preentrenar LLMs masivos, se implementó u
 \subsection{Exp. 2: Convergencia desde Cero (Curvas de Loss)}
 \textbf{Objetivo y Modelos:} Se comparó la convergencia de \texttt{learned} y \texttt{rope} entrenando desde cero dos Transformer causales de 4 capas, 4 cabezas, dimensión 256 y contexto de 512 tokens. Ambos compartieron pesos iniciales comunes, semilla ($42$), optimizador y orden de lotes, diferenciándose únicamente en la codificación posicional.
 
-\textbf{Dataset y Protocolo:} Se entrenó en dos fases consecutivas: OPUS100 (inglés-español) y DACSA (artículos en español), utilizando tokenización por caracteres y un vocabulario común de $3\,374$ tokens. Se reservó aproximadamente un $5\%$ de DACSA para validación. Cada fase comprendió $10\,000$ actualizaciones con AdamW ($\eta=3\times10^{-4}$, \textit{weight decay} de $0{,}01$) y lote efectivo de 32 secuencias. DACSA continuó desde los pesos y el optimizador de OPUS, sin reinicialización.
+\textbf{Entrenamiento:} Se entrenó en dos fases consecutivas: OPUS100 (inglés-español) y DACSA (artículos en español), utilizando tokenización por caracteres y un vocabulario común de $3\,374$ tokens. Se reservó aproximadamente un $5\%$ de DACSA para validación. Cada fase comprendió $10\,000$ actualizaciones con AdamW ($\eta=3\times10^{-4}$, \textit{weight decay} de $0{,}01$) y lote efectivo de 32 secuencias. DACSA continuó desde los pesos y el optimizador de OPUS, sin reinicialización.
 
 
 \textbf{Evaluación:} Se registró la entropía cruzada y se evaluó cada 500 pasos sobre $2\,048$ secuencias fijas por corpus, realizando finalmente una validación completa de los checkpoints seleccionados.
 
 
 \subsection{Exp. 3: Impacto computacional}
-Usando los checkpoints definitivos Learned y RoPE del experimento 2 se comparó parámetros, velocidad y memoria GPU. Midiendo el forward completo con logits (no generación token a token) en RTX 5070 Laptop, FP16, lote 1 y longitudes de 64, 128, 256 y 512 tokens. En evaluación sin gradientes, se realizó 5 calentamientos y 5 repeticiones de 10 forwards, sincronizando CUDA y excluyendo carga y transferencias. Además, se registró el pico asignado por PyTorch y se comprobó en FP32 la propiedad de posición relativa con Q/K fijos y separación constante.
+
+\textbf{Objetivo:} Para evaluar el coste computacional
+de RoPE, se compararon los modelos Learned y RoPE entrenados en
+el experimento 2. Analizamos el número de parámetros, la
+velocidad de procesamiento y el consumo de memoria GPU, con
+el objetivo de comprobar si la eliminación de los embeddings
+posicionales aprendidos supone una mejora en eficiencia.
+
+\textbf{Evaluación:} Se realizaron las pruebas en
+una RTX 5070 Laptop con FP16, lote 1 y secuencias de 64 a
+512 tokens. Medimos el tiempo del \textit{forward} completo
+mediante cinco repeticiones de diez ejecuciones, con calentamiento
+previo y sincronización CUDA. También registraremos el pico
+de VRAM y comprobamos en FP32 la invariancia relativa de
+RoPE al desplazar los vectores Q y K manteniendo su separación.
 
 \section{Resultados y Discusión}
 
@@ -183,12 +213,29 @@ El modelo \texttt{learned} sufre un colapso monótono inmediato (\textbf{H2}): c
 \textbf{Discusión:} Los resultados indican que RoPE consiguió una reducción más rápida de la pérdida inicial en OPUS y una menor pérdida final en ambos corpus. Sin embargo, el comportamiento en DACSA está condicionado por el entrenamiento previo, por lo que no representa una segunda convergencia desde cero. Aunque las condiciones fueron equivalentes para ambas variantes, la comparación se realizó con una única semilla, siendo necesarias ejecuciones adicionales para comprobar la estabilidad de los resultados.
 
 \subsection{Análisis del Experimento 3: Eficiencia Computacional}
-La Figura~\ref{fig:velocidad_exp3} muestra el rendimiento por longitud y la Tabla~\ref{tab:coste_exp3} recoge los parámetros y las mediciones con 512 tokens.
+
+\textbf{Comparación de Parámetros:} Como muestra la
+Tabla~\ref{tab:coste_exp3}, RoPE reduce el número de
+parámetros de $5\,018\,112$ a $4\,887\,040$, eliminando
+los $131\,072$ parámetros correspondientes a los embeddings
+posicionales aprendidos. Esto supone una reducción del
+$2{,}61\%$, ya que RoPE introduce la información posicional
+mediante rotaciones matemáticas sin parámetros entrenables.
+
+\textbf{Velocidad de Procesamiento:} La
+Figura~\ref{fig:velocidad_exp3} muestra que Learned obtuvo
+un mayor rendimiento en todas las longitudes evaluadas.
+Con $512$ tokens, alcanzó $218\,615$ tokens/s frente a
+los $175\,629$ tokens/s de RoPE, una diferencia del
+$24{,}5\%$ a favor de Learned. Esto indica que la
+reducción de parámetros no implica necesariamente una
+ejecución más rápida, ya que RoPE requiere operaciones
+adicionales sobre Q y K.
 
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=\linewidth]{../experimentos_2_y_3/figuras_exp3/velocidad.png}
-  \caption{Velocidad del forward completo en FP16 y lote 1; media y desviación estándar de 5 repeticiones.}
+  \caption{Velocidad del forward completo en FP16 y desviación estándar de 5 repeticiones.}
   \label{fig:velocidad_exp3}
 \end{figure}
 
@@ -207,16 +254,32 @@ La Figura~\ref{fig:velocidad_exp3} muestra el rendimiento por longitud y la Tabl
     Pico VRAM asignada (MiB) & $19{,}08$ & $19{,}33$ \\
     \bottomrule
   \end{tabularx}
-  \caption{Coste computacional. Tiempos, rendimiento y pico de memoria: medias con 512 tokens, FP16 y lote 1.}
+  \caption{Coste computacional. Tiempos y rendimiento.}
   \label{tab:coste_exp3}
 \end{table}
 
-RoPE elimina $131\,072$ parámetros posicionales, pero obtiene menor rendimiento en nuestra implementación: con 512 tokens, Learned procesa aproximadamente un $24{,}5\%$ más de tokens por segundo. El pico de memoria asignada es prácticamente igual ($19{,}08$ frente a $19{,}33$ MiB); esta medida no representa toda la VRAM del dispositivo. Estos resultados se limitan a nuestra implementación y configuración; no demuestran que RoPE sea universalmente más lento.
+\textbf{Consumo de Memoria:} RoPE presentó un pico de memoria 
+muy similar al de Learned. 
+Esta pequeña diferencia indica que el ahorro de
+parámetros no se tradujo en una reducción apreciable
+de memoria, debido también a los tensores temporales
+y las operaciones de atención. Estas medidas corresponden
+a la memoria asignada por PyTorch, no a toda la VRAM
+del dispositivo.
 
-La comprobación analítica en FP32 obtuvo un error máximo de $1{,}21\times10^{-6}$, compatible con la propiedad de posición relativa de RoPE para Q/K fijos.
+\textbf{Validación Analítica:} Finalmente, al desplazar
+los vectores Q y K manteniendo constante su distancia,
+obtuvimos un error absoluto máximo de
+$1{,}21\times10^{-6}$. Este resultado confirma,
+dentro de la precisión numérica FP32, que nuestra
+implementación conserva la propiedad de posición
+relativa de RoPE para los vectores analizados.
+
 
 \section{Conclusiones}
 La implementación de RoPE permitió comprobar sus ventajas frente a los embeddings posicionales aprendidos en los escenarios evaluados. En memoria asociativa, mantuvo un $82{,}30\%$ de exactitud en secuencias aproximadamente $3{,}5$ veces más largas que las de entrenamiento, frente al $30{,}10\%$ del modelo base. Además, obtuvo menores pérdidas de validación en OPUS y DACSA, con reducciones relativas del $14{,}34\%$ y $8{,}44\%$, respectivamente.
 
 En cuanto al coste computacional, RoPE eliminó $131\,072$ parámetros posicionales, aunque presentó menor velocidad de procesamiento y un consumo de memoria similar en nuestra implementación. En conjunto, los resultados respaldan las ventajas de RoPE en extrapolación y convergencia, sin que ello implique una mejora universal del rendimiento computacional.
+
+\bibliography{referencias}
 \end{document}
