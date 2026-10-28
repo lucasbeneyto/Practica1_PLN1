@@ -17,6 +17,22 @@
 \usepackage{times}
 \usepackage{inconsolata}
 \usepackage{flafter}
+\usepackage[font=footnotesize,skip=3pt]{caption}
+\usepackage{enumitem}
+
+\makeatletter
+\renewcommand\normalsize{%
+   \@setfontsize\normalsize{9pt}{10.5pt}%
+   \abovedisplayskip 4pt plus 1pt minus 1pt
+   \abovedisplayshortskip 0pt plus 1pt
+   \belowdisplayshortskip 4pt plus 1pt minus 1pt
+   \belowdisplayskip \abovedisplayskip
+   \let\@listi\@listI}
+\makeatother
+
+\setlength{\columnsep}{0.5cm}
+\setlist[itemize]{noitemsep, topsep=1pt, partopsep=0pt, parsep=0pt, leftmargin=*}
+\setlist[enumerate]{noitemsep, topsep=1pt, partopsep=0pt, parsep=0pt, leftmargin=*}
 
 \definecolor{ropeblue}{RGB}{31, 119, 180}
 \definecolor{learnedred}{RGB}{209, 73, 91}
@@ -41,9 +57,8 @@ Para resolver esta limitación, en este trabajo se integra \textbf{Rotary Positi
 
 \section{Arquitectura y Ampliación}
 
-\subsection{Estructura del Repositorio}
-El repositorio \texttt{minigpt} se ha refactorizado para desacoplar el motor del modelo de los scripts experimentales. La clase \texttt{GPTConfig} permite alternar entre \texttt{learned} y \texttt{rope}. La lógica trigonométrica central reside en \texttt{rope.py}, mientras que \texttt{attention.py} aplica las rotaciones mediante \texttt{apply\_rotary} y una caché dinámica (\texttt{RoPECache}). Los experimentos y datos residen en sus propios módulos aislados.
-
+\subsection{Arquitectura Base}
+El sistema parte de la arquitectura decodificadora autorregresiva de GPT-2 implementada a partir de los capítulos 2 a 6 de la obra de Sebastian Raschka (2024; \textit{Build a Large Language Model (from scratch)}, Manning Publications). El diseño base articula la tokenización BPE, bloques de transformación causales con normalización previa (\textit{Pre-LayerNorm}), conexiones residuales y atención multicabezal enmascarada, empleando originalmente una matriz de incrustaciones posicionales absolutas aprendidas en la capa de entrada. 
 \subsection{Implementación de RoPE}
 Frente al esquema aditivo clásico,
 \[
@@ -69,7 +84,7 @@ traslada el posicionamiento al espacio relativo sin introducir parámetros apren
 Dada la restricción de recursos para preentrenar LLMs masivos, se implementó una batería de experimentos acotada, reproducible y diseñada para auditar empíricamente las propiedades formales de RoPE.
 
 \subsection{Exp. 1: Extrapolación en Memoria Asociativa}
-\textbf{Fundamento y Tarea Sintética:} Se evaluó la capacidad de extrapolación mediante una tarea de \textit{Associative Recall}. Cada secuencia está formada por $n$ pares clave-valor (claves A--Z, valores 0--9) seguidos de una consulta. Se adoptó una sintaxis contigua estricta (\texttt{G: 4, T: 7, A: 2 QUERY A 2 <|endoftext|>}), donde el valor objetivo sucede inmediatamente a la clave consultada. Este diseño permite que emerjan \textbf{cabezas de inducción} de un solo paso; la introducción previa de separadores intermedios requería razonamiento en múltiples saltos que bloqueaba la convergencia en modelos pequeños.
+\textbf{Fundamento y Tarea Sintética:} Se evaluó la capacidad de extrapolación mediante una tarea de \textit{Associative Recall}. Cada secuencia está formada por $n$ pares clave-valor (claves A--Z, valores 0--9) seguidos de una consulta. Se adoptó una sintaxis contigua estricta (\texttt{G: 4, T: 7, A: 2 QUERY A 2 <|endoftext|>}), donde el valor objetivo sucede inmediatamente a la clave consultada. Este diseño permite que emerjan cabezas de inducción de un solo paso. Durante las pruebas, se comprobó que la introducción previa de separadores intermedios (ejp: \texttt{... QUERY A: 2 <|endoftext|>}) requería razonamiento en múltiples saltos que bloqueaba la convergencia en modelos pequeños.
 
 \textbf{Dataset y Protocolo:} Se empleó un vocabulario de 43 \textit{tokens} (BPE compacto). La longitud exacta en \textit{tokens} responde a $L(n) = 4n + 5$, situándose la respuesta en el índice antepenúltimo. El conjunto de entrenamiento contempló $10\,000$ ejemplos cortos de $4$ a $6$ pares ($21$--$29$ \textit{tokens}, media de $24{,}98$). La extrapolación se midió en $1\,000$ ejemplos por cada nivel: $6, 8, 12, 16, 20$ y $24$ pares ($29$ a $101$ \textit{tokens}).
 
@@ -91,7 +106,7 @@ Dada la restricción de recursos para preentrenar LLMs masivos, se implementó u
 
 
 \subsection{Exp. 3: Impacto computacional}
-Usaremos los checkpoints definitivos Learned y RoPE del experimento 2 para comparar parámetros, velocidad y memoria GPU. Mediremos el forward completo con logits (no generación token a token) en RTX 5070 Laptop, FP16, lote 1 y longitudes de 64, 128, 256 y 512 tokens. En evaluación sin gradientes, realizaremos 5 calentamientos y 5 repeticiones de 10 forwards, sincronizando CUDA y excluyendo carga y transferencias. Registraremos el pico asignado por PyTorch. Comprobaremos además en FP32 la propiedad de posición relativa con Q/K fijos y separación constante.
+Usando los checkpoints definitivos Learned y RoPE del experimento 2 se comparó parámetros, velocidad y memoria GPU. Midiendo el forward completo con logits (no generación token a token) en RTX 5070 Laptop, FP16, lote 1 y longitudes de 64, 128, 256 y 512 tokens. En evaluación sin gradientes, se realizó 5 calentamientos y 5 repeticiones de 10 forwards, sincronizando CUDA y excluyendo carga y transferencias. Además, se registró el pico asignado por PyTorch y se comprobó en FP32 la propiedad de posición relativa con Q/K fijos y separación constante.
 
 \section{Resultados y Discusión}
 
